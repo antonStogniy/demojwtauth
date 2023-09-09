@@ -12,7 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/post")
@@ -34,6 +36,16 @@ public class PostController {
         UserProfile userProfile = getUserAuthProfile();
 
         return postRepository.findPostsByUserProfile(userProfile);
+    }
+    @PutMapping("/update/{postId}")
+    public Post updatePost(@PathVariable Long postId,
+                           @Valid @RequestBody Post updatePost){
+        return postRepository.findById(postId).map(post -> {
+            post.setTitle(updatePost.getTitle());
+            post.setContent(updatePost.getContent());
+            post.setDescription(updatePost.getDescription());
+            return postRepository.save(post);
+        }).orElseThrow(()-> new NoSuchElementException());
     }
     private UserProfile getUserAuthProfile(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
